@@ -9,14 +9,49 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Socket.IO Client Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+    <!-- Load attractive font: Jost for display, Inter for body/text editor -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Jost:wght@700&display=swap" rel="stylesheet">
+    
     <style>
-        /* Apply Inter font */
+        /* Apply Inter font for general body text and editor readability */
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light Gray Background */
             transition: background-color 0.3s;
+            color: #1f2937; /* Dark Gray Text */
+        }
+        
+        /* Apply Jost font specifically to the main heading for visual impact */
+        .header-title {
+            font-family: 'Jost', sans-serif;
         }
 
-        /* Custom scrollbar for better aesthetics */
+        /* Light Glassmorphism Effect for containers */
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.85); /* Transparent White */
+            border: 1px solid rgba(79, 70, 229, 0.2); /* Primary accent border, less prominent */
+            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            color: #1f2937; /* Dark text for readability */
+        }
+
+        /* Style the actual text editor area for high contrast */
+        #shared-text {
+            background-color: #ffffff; /* Pure white for high contrast */
+            border: 1px solid #d1d5db; /* Light gray border */
+            color: #111827; /* Very readable dark text */
+            transition: all 0.3s ease;
+            line-height: 1.618; /* Golden Ratio line height for typography aesthetics */
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        #shared-text:focus {
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.6); /* Primary color glow on focus */
+            border-color: #4f46e5;
+        }
+        
+        /* Custom scrollbar matching the theme */
         textarea::-webkit-scrollbar {
             width: 8px;
         }
@@ -27,7 +62,7 @@
         }
 
         textarea::-webkit-scrollbar-track {
-            background-color: #f3f4f6;
+            background-color: #e5e7eb; /* Light track */
         }
     </style>
     <script>
@@ -45,11 +80,11 @@
     </script>
 </head>
 
-<body class="bg-gray-100 min-h-screen p-4 sm:p-8 flex items-start justify-center">
-    <div class="w-full max-w-4xl">
+<body class="min-h-screen p-4 sm:p-8 flex items-start justify-center">
+    <div class="w-full max-w-5xl">
         <!-- Header Section -->
-        <header class="text-center mb-6 p-4 bg-white rounded-xl shadow-lg border-t-4 border-primary">
-            <h1 class="text-3xl font-bold text-gray-800 flex items-center justify-center">
+        <header class="text-center mb-6 p-6 glass-card rounded-xl border-t-4 border-primary">
+            <h1 class="header-title text-3xl font-extrabold flex items-center justify-center text-gray-900">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-2 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <path d="M14 2v6h6"></path>
@@ -57,31 +92,43 @@
                     <path d="M16 17H8"></path>
                     <path d="M16 15H8"></path>
                 </svg>
-                Task 3: Real-Time Editor
+                Task 3: Real-Time Collaborative Editor
             </h1>
-            <p class="text-gray-500 mt-1">Changes are broadcast to all connected users instantly using WebSockets.</p>
+            <p class="text-gray-600 mt-2 text-lg">Instant synchronization powered by **WebSockets (Flask-SocketIO)**.</p>
         </header>
 
-        <!-- Status Indicator -->
-        <div id="status" class="text-center mb-4 p-3 rounded-lg text-sm font-medium bg-yellow-100 text-yellow-700 shadow-md transition-colors duration-300">
-            Connecting...
+        <!-- Status Indicator and User Count -->
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+            <!-- Connection Status -->
+            <div id="status" class="w-full sm:w-auto p-3 rounded-lg text-sm font-semibold shadow-xl transition-colors duration-300 border-2">
+                Connecting...
+            </div>
+
+            <!-- User Count -->
+            <div class="w-full sm:w-auto p-3 rounded-lg text-sm font-semibold shadow-xl glass-card text-gray-900 flex items-center justify-center sm:justify-start border border-primary/50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Users connected: <span id="user-count" class="font-extrabold text-primary ml-1">1</span>
+            </div>
         </div>
 
-        <!-- Collaboration Area -->
-        <main class="bg-white rounded-xl shadow-2xl p-6 h-[75vh] flex flex-col">
+
+        <!-- Collaboration Area (Primary Golden Ratio Focus Area) -->
+        <main class="glass-card rounded-xl p-6 h-[70vh] flex flex-col">
             <textarea id="shared-text"
-                class="w-full flex-grow p-4 text-gray-700 text-lg border-2 border-gray-200 rounded-lg focus:outline-none focus:border-secondary transition duration-150 resize-none"
+                class="w-full flex-grow text-lg rounded-xl p-4 resize-none focus:outline-none"
                 placeholder="Start typing here... All connected users will see your changes instantly."
                 autofocus
                 spellcheck="false"
             ></textarea>
 
-            <div class="mt-4 flex justify-between items-center text-gray-600 text-sm">
-                <span class="font-semibold text-gray-800">
-                    Character Count: <span id="char-count">0</span>
-                </span>
-                <span>
-                    Users connected: <span id="user-count" class="font-bold text-primary">1</span>
+            <div class="mt-4 flex justify-end items-center text-gray-600 text-sm">
+                <span class="font-semibold text-gray-700">
+                    Characters: <span id="char-count" class="font-bold text-primary">0</span>
                 </span>
             </div>
         </main>
@@ -89,11 +136,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- FIX ---
             // Explicitly connect to the server's known address (http://127.0.0.1:5000)
             const SERVER_URL = 'http://127.0.0.1:5000';
             const socket = io(SERVER_URL); 
-            // ------------
 
             const textarea = document.getElementById('shared-text');
             const statusDiv = document.getElementById('status');
@@ -106,24 +151,28 @@
                 charCountSpan.textContent = textarea.value.length;
             };
 
+            const updateStatusDisplay = (message, bgColor, textColor, borderColor) => {
+                statusDiv.textContent = message;
+                // Update className, preserving the base shadow-xl
+                statusDiv.className = `w-full sm:w-auto p-3 rounded-lg text-sm font-semibold shadow-xl transition-colors duration-300 border-2 ${bgColor} ${textColor} ${borderColor}`;
+            };
+
+
             // --- SOCKET EVENT HANDLERS ---
 
             socket.on('connect', () => {
-                statusDiv.textContent = 'Connection established. Ready to collaborate!';
-                statusDiv.classList.replace('bg-yellow-100', 'bg-green-100');
-                statusDiv.classList.replace('text-yellow-700', 'text-green-700');
+                // LIGHT THEME: Use darker shades for better contrast on light background
+                updateStatusDisplay('Connection established. Ready to collaborate!', 'bg-green-100', 'text-green-800', 'border-green-600');
             });
 
             socket.on('disconnect', () => {
-                statusDiv.textContent = 'Disconnected. Attempting to reconnect...';
-                statusDiv.classList.replace('bg-green-100', 'bg-red-100');
-                statusDiv.classList.replace('text-green-700', 'text-red-700');
+                // LIGHT THEME: Use darker shades for better contrast on light background
+                updateStatusDisplay('Disconnected. Attempting to reconnect...', 'bg-red-100', 'text-red-800', 'border-red-600');
             });
             
             // Receive text updates from other users
             socket.on('update_text', (data) => {
                 if (textarea.value !== data.text) {
-                    // Temporarily set flag to true to prevent triggering the 'input' event listener
                     isUpdateFromSocket = true;
                     textarea.value = data.text;
                     updateCharCount();
@@ -158,7 +207,9 @@
                 }
             });
 
-            // Initial count display
+            // Initial status and count display
+            // LIGHT THEME: Use darker shades for better contrast on light background
+            updateStatusDisplay('Connecting...', 'bg-yellow-100', 'text-yellow-800', 'border-yellow-600');
             updateCharCount();
         });
     </script>
