@@ -1,55 +1,63 @@
-# Real-Time Collaboration Server (Task 3)
+# Real-Time Collaboration Server with Live User List
 from flask import Flask, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 import os
 
 # --- Configuration ---
 app = Flask(__name__)
-# IMPORTANT: For demonstration, we allow all origins.
-# For production, replace "*" with your specific client URL.
 app.config['SECRET_KEY'] = 'codtech_task3_secret_key'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # --- Global State ---
-# This dictionary stores the content for the single shared document.
-# 'document' is the name of the room all users join.
 SHARED_TEXT = {
     'document': "Welcome to the real-time collaborative editor! Start typing below, and anyone else connected will see your changes instantly."
 }
 
-# --- Flask Routes ---
+# Track connected users per room
+CONNECTED_USERS = {
+    'document': {}  # room_name: { sid: username }
+}
 
+
+# --- Flask Routes ---
 @app.route('/')
 def index():
-    """
-    Main route. Confirms the server is running.
-    """
-    return "The SocketIO server is running! Open your browser to the client file (index.html) to connect.", 200
+    """Simple health check route."""
+    return "The SocketIO server is running! Open index.html in your browser to connect.", 200
 
-# --- Socket.IO Event Handlers ---
 
+# --- Helper Functions ---
 def get_user_count(room='document'):
     """Calculates the number of unique users currently connected to the specified room."""
     try:
-        # Access the SocketIO internal structure to get session IDs in the room
         room_members = socketio.server.manager.rooms.get('/', {}).get(room, {})
         return len(room_members)
     except Exception:
         return 0
 
+
+# --- Socket.IO Event Handlers ---
 @socketio.on('connect')
 def handle_connect():
     """Handles new client connections."""
     room = 'document'
-    join_room(room) # Place the user in the 'document' room
+    join_room(room)
 
-    # 1. Send the current document state only to the connecting client
+    # Assign a temporary username (e.g., User-AB12)
+    username = f"User-{request.sid[:4]}"
+    CONNECTED_USERS[room][request.sid] = username
+
+    # Send the current document content to the newly connected user
     emit('load_history', {'text': SHARED_TEXT[room]}, room=request.sid)
 
-    # 2. Update and broadcast the new user count to all clients
+    # Update all clients about the new user list and count
     user_count = get_user_count(room)
+    user_list = list(CONNECTED_USERS[room].values())
+
     emit('user_count_update', {'count': user_count}, room=room, broadcast=True)
-    print(f'Client {request.sid[:4]} joined room {room}. Total users: {user_count}')
+    emit('user_list_update', {'users': user_list}, room=room, broadcast=True)
+
+    print(f"[JOIN] {username} connected. Users now: {user_count}")
 
 
 @socketio.on('disconnect')
@@ -58,31 +66,43 @@ def handle_disconnect():
     room = 'document'
     leave_room(room)
 
-    # Update and broadcast the new user count to all clients
+    username = CONNECTED_USERS[room].pop(request.sid, None)
     user_count = get_user_count(room)
+    user_list = list(CONNECTED_USERS[room].values())
+
     emit('user_count_update', {'count': user_count}, room=room, broadcast=True)
-    print(f'Client {request.sid[:4]} left room {room}. Total users: {user_count}')
+    emit('user_list_update', {'users': user_list}, room=room, broadcast=True)
+
+    print(f"[LEAVE] {username or 'Unknown user'} disconnected. Users now: {user_count}")
 
 
 @socketio.on('text_change')
 def handle_text_change(data):
-    """
-    Handles real-time text updates from a client, updates the global state, and
-    broadcasts the change to all other clients in the 'document' room.
-    """
+    """Handles real-time text updates and broadcasts them to all connected clients."""
     new_text = data.get('text', '')
     room = 'document'
 
-    # 1. Update the global shared state
+    # Update global shared state
     SHARED_TEXT[room] = new_text
 
-    # 2. Broadcast the change to all *other* users in the room
-    # 'skip_sid=request.sid' prevents echoing the change back to the sender
+    # Broadcast update to everyone except sender
     emit('update_text', {'text': new_text}, room=room, skip_sid=request.sid)
+
+
+# Optional: Support setting a custom username after connection
+@socketio.on('register_user')
+def register_user(data):
+    """Allows clients to set a custom display name after connecting."""
+    room = 'document'
+    username = data.get('username', f"User-{request.sid[:4]}")
+    CONNECTED_USERS[room][request.sid] = username
+
+    user_list = list(CONNECTED_USERS[room].values())
+    emit('user_list_update', {'users': user_list}, room=room, broadcast=True)
+    print(f"[REGISTER] {username} updated their name.")
 
 
 # --- Run the Server ---
 if __name__ == '__main__':
-    # Use socketio.run instead of app.run for WebSocket capability
     print("Starting SocketIO Server on port 5000...")
     socketio.run(app, debug=True, host='0.0.0.0', port=5000)
