@@ -61,3 +61,5 @@ The core system uses **Flask-SocketIO** to handle all connection handshakes and 
 | **Frontend** | HTML5, Vanilla JavaScript | Client-side logic for connecting and UI updates |
 | **Styling** | Tailwind CSS (CDN) | Rapid, responsive UI design and theming |
 | **Typography** | Jost / Inter Fonts | Enhanced visual appeal and readability |
+
+# OUTPUT
