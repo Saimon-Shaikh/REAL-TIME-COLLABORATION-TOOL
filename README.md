@@ -63,3 +63,17 @@ The core system uses **Flask-SocketIO** to handle all connection handshakes and 
 | **Typography** | Jost / Inter Fonts | Enhanced visual appeal and readability |
 
 # OUTPUT
+## Brower/Tab 1:
+<img width="1920" height="975" alt="Image" src="https://github.com/user-attachments/assets/f00e848c-037e-4fea-916c-f99c07d4448a" />
+
+## Brower/Tab 2:
+<img width="1920" height="971" alt="Image" src="https://github.com/user-attachments/assets/00a38dc2-138b-4690-b820-0dcb3a156ef3" />
+
+---
+<img width="1920" height="974" alt="Image" src="https://github.com/user-attachments/assets/6a8d2a29-2574-4c39-8316-54f279f4180b" />
+
+<img width="1920" height="964" alt="Image" src="https://github.com/user-attachments/assets/c9dd42b8-d587-4d71-ab7a-a3abaef2cdeb" />
+
+---
+## Terminal(HTTP Status Code):
+<img width="1196" height="879" alt="Image" src="https://github.com/user-attachments/assets/692814fa-8f0e-41f9-b98a-678cda853b2f" />
