@@ -31,6 +31,8 @@ The project proves proficiency in managing **persistent connections** and implem
 * **Instant Synchronization:** Leverages **WebSockets** (via Flask-SocketIO) to ensure text updates occur instantly with near-zero latency.
 * **Multi-User Support:** The server accurately tracks, manages, and broadcasts the number of active users editing the document in real-time.
 * **Bidirectional Data Flow:** Clients send user input (`text_change` event), and the server immediately broadcasts the updated state back to all clients (`update_text` event).
+* **Live Collaborator List:** The server maintains a dictionary of all currently connected users. A list of currently online usernames is broadcast to all clients whenever a user connects, disconnects, or changes their name.
+*  **Custom Identity & Registration:** Users are initially assigned a unique, temporary "Guest" name. A dedicated input field and button allow users to register a custom display name (username). This name is then used in the live collaborator list.
 * **Initial State Loading:** New clients receive the current document history upon connecting, ensuring they start with the latest content.
 * **Aesthetic UI/UX:** Features a clean, attractive, and fully responsive light-theme interface for optimal user experience.
 
