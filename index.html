@@ -8,7 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Jost:wght@700&display=swap" rel="stylesheet">
-
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -56,16 +55,19 @@
         textarea::-webkit-scrollbar-track {
             background-color: #e5e7eb;
         }
-
-        #user-list li {
-            transition: all 0.3s ease;
-        }
-
-        #user-list li:hover {
-            color: #4f46e5;
-            transform: translateX(4px);
-        }
     </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#4f46e5',
+                        'secondary': '#6366f1',
+                    },
+                }
+            }
+        }
+    </script>
 </head>
 
 <body class="min-h-screen p-4 sm:p-8 flex items-start justify-center">
@@ -73,7 +75,8 @@
         <!-- Header Section -->
         <header class="text-center mb-6 p-6 glass-card rounded-xl border-t-4 border-primary">
             <h1 class="header-title text-3xl font-extrabold flex items-center justify-center text-gray-900">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-2 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-2 text-primary" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <path d="M14 2v6h6"></path>
                     <path d="M10 13H8"></path>
@@ -82,35 +85,28 @@
                 </svg>
                 Task 3: Real-Time Collaborative Editor
             </h1>
-            <p class="text-gray-600 mt-2 text-lg">Instant synchronization powered by <strong>WebSockets (Flask-SocketIO)</strong>.</p>
+            <p class="text-gray-600 mt-2 text-lg">Instant synchronization powered by WebSockets (Flask-SocketIO).</p>
         </header>
 
-        <!-- Status and Users -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+        <!-- Status and User Info -->
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
             <div id="status" class="w-full sm:w-auto p-3 rounded-lg text-sm font-semibold shadow-xl transition-colors duration-300 border-2">
                 Connecting...
             </div>
-
-            <div class="w-full sm:w-auto p-3 rounded-lg text-sm font-semibold shadow-xl glass-card text-gray-900 flex flex-col border border-primary/50">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        <span>Users connected:</span>
-                    </div>
-                    <span id="user-count" class="font-extrabold text-primary ml-2">0</span>
-                </div>
-
-                <!-- Live User List -->
-                <div id="user-list" class="mt-2 border-t border-primary/30 pt-2">
-                    <h2 class="font-semibold text-primary mb-1 text-sm">Currently Online:</h2>
-                    <ul id="user-list-items" class="list-disc pl-5 text-gray-700 text-sm space-y-0.5">
-                        <li>Loading...</li>
-                    </ul>
+            <div class="w-full sm:w-auto p-3 rounded-lg text-sm font-semibold shadow-xl glass-card text-gray-900 flex flex-col sm:flex-row items-start sm:items-center justify-start gap-2 border border-primary/50">
+                <span class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-primary" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Users connected: <span id="user-count" class="font-extrabold text-primary ml-1">1</span>
+                </span>
+                <div>
+                    <input type="text" id="username-input" placeholder="Set your name" class="border p-1 rounded mr-1 text-sm">
+                    <button id="set-name-btn" class="bg-primary text-white px-2 py-1 rounded text-sm">Set Name</button>
                 </div>
             </div>
         </div>
@@ -123,11 +119,11 @@
                 autofocus
                 spellcheck="false"
             ></textarea>
-
-            <div class="mt-4 flex justify-end items-center text-gray-600 text-sm">
+            <div class="mt-4 flex justify-between items-center text-gray-600 text-sm">
                 <span class="font-semibold text-gray-700">
                     Characters: <span id="char-count" class="font-bold text-primary">0</span>
                 </span>
+                <ul id="online-users" class="text-gray-800 list-disc list-inside"></ul>
             </div>
         </main>
     </div>
@@ -141,7 +137,10 @@
             const statusDiv = document.getElementById('status');
             const userCountSpan = document.getElementById('user-count');
             const charCountSpan = document.getElementById('char-count');
-            const userListContainer = document.getElementById('user-list-items');
+            const nameInput = document.getElementById('username-input');
+            const setNameBtn = document.getElementById('set-name-btn');
+            const onlineUsersList = document.getElementById('online-users');
+
             let isUpdateFromSocket = false;
 
             const updateCharCount = () => {
@@ -153,8 +152,9 @@
                 statusDiv.className = `w-full sm:w-auto p-3 rounded-lg text-sm font-semibold shadow-xl transition-colors duration-300 border-2 ${bgColor} ${textColor} ${borderColor}`;
             };
 
+            // --- SOCKET EVENTS ---
             socket.on('connect', () => {
-                updateStatusDisplay('Connected. Ready to collaborate!', 'bg-green-100', 'text-green-800', 'border-green-600');
+                updateStatusDisplay('Connection established. Ready to collaborate!', 'bg-green-100', 'text-green-800', 'border-green-600');
             });
 
             socket.on('disconnect', () => {
@@ -179,28 +179,29 @@
                 }
             });
 
-            socket.on('user_count_update', (data) => {
-                userCountSpan.textContent = data.count;
-            });
-
             socket.on('user_list_update', (data) => {
-                const users = data.users || [];
-                userListContainer.innerHTML = '';
-                if (users.length === 0) {
-                    userListContainer.innerHTML = '<li>No users online</li>';
-                } else {
-                    users.forEach(username => {
-                        const li = document.createElement('li');
-                        li.textContent = username;
-                        userListContainer.appendChild(li);
-                    });
-                }
+                onlineUsersList.innerHTML = '';
+                data.users.forEach((user) => {
+                    const li = document.createElement('li');
+                    li.textContent = user;
+                    onlineUsersList.appendChild(li);
+                });
+                userCountSpan.textContent = data.users.length;
             });
 
+            // --- TEXTAREA INPUT ---
             textarea.addEventListener('input', () => {
                 updateCharCount();
                 if (!isUpdateFromSocket) {
                     socket.emit('text_change', { text: textarea.value });
+                }
+            });
+
+            // --- SET NAME ---
+            setNameBtn.addEventListener('click', () => {
+                const username = nameInput.value.trim();
+                if (username) {
+                    socket.emit('register_user', { username });
                 }
             });
 
